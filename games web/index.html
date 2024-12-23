@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OxB Games</title>
+    <style>
+                :root {
+            --mobile-padding: 10px; /* Espaciado para móviles */
+            --tablet-padding: 20px; /* Espaciado para tablets */
+        }
+
+        #particlesCanvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    pointer-events: none; /* Evitar que interfiera con otros elementos */
+}
+        /* Estilos básicos */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212; /* Fondo oscuro para mejorar la visibilidad */
+            color: #ffffff;
+            overflow: hidden;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        /* Contenedores */
+        .auth-container, .register-container, .game-menu, .loading-screen, .game-frame {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #121212ef; /* Fondo oscuro para mejorar la visibilidad */
+        }
+
+        .auth-container.active, .register-container.active, .game-menu.active, .loading-screen.active, .game-frame.active {
+            display: flex;
+        }
+
+        input {
+            width: 18%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+
+        button {
+            width: 15%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            background-color: #4CAF50;
+            color: #ffffff;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Juegos */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            width: 30%;
+            margin: 20px auto;
+        }
+
+        .game-item {
+            text-align: center;
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .game-item img {
+            width: 100%;
+            max-width: 130px;
+            border-radius: 10px;
+        }
+
+        .game-item:hover {
+            transform: scale(1.02);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+/* Estilos de la pantalla de carga */
+.loading-screen {
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #121212; /* Fondo oscuro con opacidad */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    display: none; /* Ocultamos la pantalla de carga inicialmente */
+}
+
+.loading-circle {
+    width: 50px;
+    height: 50px;
+    border: 5px #121212f3;
+    border-top: 5px solid #4CAF50;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-bar-container {
+    width: 20%;
+    background-color: #121212; /* Fondo oscuro para mejorar la visibilidad */
+    height: 10px;
+    border-radius: 5px;
+    margin-top: 20px;
+    overflow: hidden;
+}
+
+.loading-bar {
+    height: 100%;
+    width: 0;
+    background-color: #4CAF50;
+    animation: loadBar 3s forwards;
+}
+
+.welcome-message {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #fff;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes loadBar {
+    0% { width: 0; }
+    100% { width: 100%; }
+}
+
+
+/* Estilo del contenedor de errores */
+.error-container {
+    position: fixed;
+    margin-top: 220px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20%;
+    z-index: 9999;
+    display: none; /* Inicialmente oculto */
+}
+
+/* Estilo del mensaje de error */
+.error-message {
+    background-color: #e74c3c;
+    padding: 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    color: #ffffff;
+    text-align: center;
+    animation: popUp 0.5s ease-out;
+}
+
+/* Animación de pop-up para mostrar */
+@keyframes popUp {
+    0% {
+        transform: scale(0.5); /* Inicia más pequeño */
+        opacity: 0; /* Inicia transparente */
+    }
+    50% {
+        transform: scale(1.1); /* Se agranda ligeramente */
+        opacity: 1; /* Se vuelve opaco */
+    }
+    100% {
+        transform: scale(1); /* Escala normal */
+        opacity: 1; /* Totalmente visible */
+    }
+}
+
+/* Animación de pop-up para ocultar */
+@keyframes popDown {
+    0% {
+        transform: scale(1); /* Comienza en su tamaño normal */
+        opacity: 1; /* Totalmente visible */
+    }
+    50% {
+        transform: scale(1.1); /* Se agranda ligeramente */
+        opacity: 0.8; /* Se vuelve algo translúcido */
+    }
+    100% {
+        transform: scale(0.5); /* Se hace pequeño */
+        opacity: 0; /* Se vuelve invisible */
+    }
+}
+canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Contenedor de mensajes de error -->
+<div class="error-container" id="errorContainer">
+    <div class="error-message" id="errorMessage"></div>
+</div>
+    <canvas id="myCanvas"></canvas>
+    
+    <!-- Inicio de sesión -->
+    <div class="auth-container active" id="authContainer">
+        <h2>Inicia Sesión</h2>
+        <input type="text" id="loginUsername" placeholder="Usuario">
+        <input type="password" id="loginPassword" placeholder="Contraseña">
+        <button onclick="login()">Iniciar Sesión</button>
+        <button onclick="showRegister()">Registrarse</button>
+    </div>
+
+    <!-- Registro -->
+    <div class="register-container" id="registerContainer">
+        <h2>Regístrate</h2>
+        <input type="text" id="registerUsername" placeholder="Usuario">
+        <input type="email" id="registerEmail" placeholder="Correo Electrónico">
+        <input type="password" id="registerPassword" placeholder="Contraseña">
+        <input type="password" id="registerConfirmPassword" placeholder="Confirmar Contraseña">
+        <button onclick="register()">Registrar</button>
+        <button onclick="showLogin()">Volver</button>
+    </div>
+
+    <!-- Menú de juegos -->
+    <div class="game-menu" id="gameMenu">
+        <h2>Bienvenido, <span id="userDisplay"></span></h2>
+        <div class="game-grid">
+            <div class="game-item" onclick="startGame('https://deadshot.io/?ads=0')">
+                <img src="deadshot.png" alt="Juego 1">
+                <p>DeadShot</p>
+            </div>
+            <div class="game-item" onclick="startGame('https://smashkarts.io/')">
+                <img src="smashkarts.png" alt="Juego 2">
+                <p>Smash Karts</p>
+            </div>
+            <div class="game-item" onclick="startGame('https://kirka.io/')">
+                <img src="kirka.png" alt="Juego 3">
+                <p>Kirka</p>
+            </div>
+            <div class="game-item" onclick="startGame('https://bloxd.io/')">
+                <img src="bloxd.png" alt="Juego 4">
+                <p>Bloxd</p>
+            </div>
+        </div>
+        <button onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <!-- Pantalla de carga -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-circle"></div>
+        <div class="loading-bar-container">
+            <div class="loading-bar"></div>
+        </div>
+        <p class="welcome-message" id="welcomeMessage"></p>
+    </div>
+
+    <!-- Juegos en iframe -->
+    <div class="game-frame" id="gameFrame">
+        <iframe id="gameIframe"></iframe>
+    </div>
+
+    <script>
+        function showRegister() {
+            document.getElementById('authContainer').classList.remove('active');
+            document.getElementById('registerContainer').classList.add('active');
+        }
+
+        function showLogin() {
+            document.getElementById('registerContainer').classList.remove('active');
+            document.getElementById('authContainer').classList.add('active');
+        }
+
+        function showError(message) {
+            const errorMessage = document.getElementById('errorMessage');
+            const errorContainer = document.getElementById('errorContainer');
+            errorContainer.style.display = 'block';
+            errorMessage.textContent = message;
+
+            setTimeout(() => {
+                errorContainer.style.display = 'none';
+            }, 3000);
+        }
+
+        function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+
+            fetch('auth.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('authContainer').classList.remove('active');
+                    document.getElementById('gameMenu').classList.add('active');
+                    document.getElementById('userDisplay').textContent = username;
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Error en el servidor.');
+            });
+        }
+
+        function register() {
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+
+            if (password !== confirmPassword) {
+                showError("Las contraseñas no coinciden.");
+                return;
+            }
+
+            fetch('auth.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `action=register&username=${encodeURIComponent(username)}&email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showLogin();
+                } else {
+                    showError(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showError('Error en el servidor.');
+            });
+        }
+
+        function logout() {
+            document.getElementById('gameMenu').classList.remove('active');
+            document.getElementById('authContainer').classList.add('active');
+        }
+
+
+        function startGame(url) {
+    const username = document.getElementById('userDisplay').textContent;
+    const welcomeMessage = document.getElementById('welcomeMessage');
+    welcomeMessage.textContent = `Bienvenido! ${username}, Cargando juego...`;
+
+    // Asegúrate de que la pantalla de carga esté visible
+    document.getElementById('loadingScreen').classList.add('active');
+    document.getElementById('gameFrame').classList.add('active');
+
+    // Configura el iframe
+    const gameIframe = document.getElementById('gameIframe');
+    gameIframe.src = url;
+
+    // Usa un retraso de 3 segundos antes de ocultar la pantalla de carga
+    setTimeout(function() {
+        document.getElementById('loadingScreen').classList.remove('active');
+    }, 3000); // 3 segundos de retraso para asegurarse de que la pantalla de carga sea visible
+
+    // También puedes agregar un evento onload para asegurarte de que el iframe se haya cargado correctamente
+    gameIframe.onload = function() {
+        // Al cargar el iframe, elimina la pantalla de carga después de 3 segundos (solo si no se ha eliminado antes)
+        setTimeout(function() {
+            document.getElementById('loadingScreen').classList.remove('active');
+        }, 3000); // 500ms de retraso para asegurar que la pantalla de carga se vea bien
+    };
+}
+
+
+
+
+        function showError(message) {
+    const errorMessage = document.getElementById('errorMessage');
+    const errorContainer = document.getElementById('errorContainer');
+
+    // Restablecer cualquier animación anterior
+    errorMessage.style.animation = 'none';
+    // Asegurarse de que el contenedor se muestre de nuevo
+    errorContainer.style.display = 'block';
+    
+    // Activar la animación de pop-up
+    errorMessage.style.animation = 'popUp 0.5s ease-out';
+    
+    errorMessage.textContent = message;
+
+    // Asegurarse de que el contenedor de error tenga la clase activa
+    errorContainer.classList.add('active');
+    
+    // Ocultar el contenedor después de 3 segundos con animación inversa
+    setTimeout(() => {
+        // Aplicar la animación de desaparición solo después de 3 segundos
+        errorMessage.style.animation = 'popDown 0.5s ease-out';
+        
+        // Esperar a que la animación termine (500ms) antes de ocultar el contenedor
+        setTimeout(() => {
+            errorContainer.style.display = 'none'; // Ocultar el contenedor
+        }, 500); // La duración de la animación de desaparición
+    }, 3000); // El contenedor se ocultará después de 3 segundos
+}
+
+// Obtener el canvas y su contexto
+const canvas = document.getElementById('myCanvas');
+const ctx = canvas.getContext('2d');
+
+// Ajustar el tamaño del canvas al tamaño de la ventana
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// Definir los puntos
+const particles = [];
+const numParticles = 100; // Número de puntos a generar
+
+// Función para crear una partícula (punto)
+function Particle() {
+    this.x = Math.random() * canvas.width;
+    this.y = Math.random() * canvas.height;
+    this.size = Math.random() * 3 + 1; // Tamaño de cada punto
+    this.speedX = Math.random() * 3 - 1.5; // Velocidad en el eje X
+    this.speedY = Math.random() * 3 - 1.5; // Velocidad en el eje Y
+}
+
+// Crear las partículas
+for (let i = 0; i < numParticles; i++) {
+    particles.push(new Particle());
+}
+
+// Función para dibujar y mover las partículas
+function animateParticles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpiar el canvas en cada frame
+
+    particles.forEach(particle => {
+        // Dibujar cada partícula como un círculo
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fill();
+        ctx.closePath();
+
+        // Mover las partículas
+        particle.x += particle.speedX;
+        particle.y += particle.speedY;
+
+        // Rebotar las partículas en los bordes del canvas
+        if (particle.x + particle.size > canvas.width || particle.x - particle.size < 0) {
+            particle.speedX *= -1;
+        }
+        if (particle.y + particle.size > canvas.height || particle.y - particle.size < 0) {
+            particle.speedY *= -1;
+        }
+    });
+
+    // Llamar a la función en el siguiente frame
+    requestAnimationFrame(animateParticles);
+}
+
+// Iniciar la animación
+animateParticles();
+
+    </script>
+</body>
+</html>
